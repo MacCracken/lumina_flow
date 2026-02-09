@@ -26,10 +26,13 @@ class Task extends HiveObject {
   DateTime? dueDate;
   
   @HiveField(7)
-  String? boardId;
+  String? projectId;
   
   @HiveField(8)
   List<String> tags;
+  
+  @HiveField(9)
+  String? taskKey;
 
   Task({
     required this.id,
@@ -39,8 +42,9 @@ class Task extends HiveObject {
     this.priority = TaskPriority.medium,
     required this.createdAt,
     this.dueDate,
-    this.boardId,
+    this.projectId,
     this.tags = const [],
+    this.taskKey,
   });
 
   Task copyWith({
@@ -51,8 +55,9 @@ class Task extends HiveObject {
     TaskPriority? priority,
     DateTime? createdAt,
     DateTime? dueDate,
-    String? boardId,
+    String? projectId,
     List<String>? tags,
+    String? taskKey,
   }) {
     return Task(
       id: id ?? this.id,
@@ -62,8 +67,9 @@ class Task extends HiveObject {
       priority: priority ?? this.priority,
       createdAt: createdAt ?? this.createdAt,
       dueDate: dueDate ?? this.dueDate,
-      boardId: boardId ?? this.boardId,
+      projectId: projectId ?? this.projectId,
       tags: tags ?? this.tags,
+      taskKey: taskKey ?? this.taskKey,
     );
   }
 }

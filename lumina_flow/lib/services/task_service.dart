@@ -3,35 +3,49 @@ import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../models/task.dart';
 import '../models/ritual.dart';
-import '../models/board.dart';
+import '../models/project.dart';
 
 class TaskService extends ChangeNotifier {
   late Box<Task> _taskBox;
   late Box<Ritual> _ritualBox;
-  late Box<Board> _boardBox;
-  late Box<BoardColumn> _columnBox;
+  late Box<Project> _projectBox;
   
   List<Task> _tasks = [];
   List<Ritual> _rituals = [];
-  List<Board> _boards = [];
-  List<BoardColumn> _columns = [];
+  List<Project> _projects = [];
+  
+  String? _selectedProjectId;
 
   List<Task> get tasks => List.unmodifiable(_tasks);
   List<Ritual> get rituals => List.unmodifiable(_rituals);
-  List<Board> get boards => List.unmodifiable(_boards);
-  List<BoardColumn> get columns => List.unmodifiable(_columns);
+  List<Project> get projects => List.unmodifiable(_projects);
+  
+  String? get selectedProjectId => _selectedProjectId;
+  
+  Project? get selectedProject {
+    if (_selectedProjectId == null) return null;
+    try {
+      return _projects.firstWhere((p) => p.id == _selectedProjectId);
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<void> init() async {
     _taskBox = await Hive.openBox<Task>('tasks');
     _ritualBox = await Hive.openBox<Ritual>('rituals');
-    _boardBox = await Hive.openBox<Board>('boards');
-    _columnBox = await Hive.openBox<BoardColumn>('columns');
+    _projectBox = await Hive.openBox<Project>('projects');
 
     _loadData();
     
-    // Initialize default board if none exists
-    if (_boards.isEmpty) {
-      await _createDefaultBoard();
+    // Initialize default project if none exists
+    if (_projects.isEmpty) {
+      await _createDefaultProject();
+    }
+    
+    // Select first project by default
+    if (_selectedProjectId == null && _projects.isNotEmpty) {
+      _selectedProjectId = _projects.first.id;
     }
     
     // Check for ritual resets
@@ -41,48 +55,25 @@ class TaskService extends ChangeNotifier {
   void _loadData() {
     _tasks = _taskBox.values.toList();
     _rituals = _ritualBox.values.toList();
-    _boards = _boardBox.values.toList();
-    _columns = _columnBox.values.toList();
+    _projects = _projectBox.values.toList();
     notifyListeners();
   }
 
-  Future<void> _createDefaultBoard() async {
+  Future<void> _createDefaultProject() async {
     const uuid = Uuid();
     
-    final board = Board(
+    final project = Project(
       id: uuid.v4(),
-      title: 'My Projects',
+      name: 'My Project',
+      key: 'MP',
+      description: 'Default project for tasks',
       createdAt: DateTime.now(),
+      color: '#4A90E2',
     );
     
-    final todoColumn = BoardColumn(
-      id: uuid.v4(),
-      title: 'To Do',
-      order: 0,
-    );
-    
-    final inProgressColumn = BoardColumn(
-      id: uuid.v4(),
-      title: 'In Progress',
-      order: 1,
-    );
-    
-    final doneColumn = BoardColumn(
-      id: uuid.v4(),
-      title: 'Done',
-      order: 2,
-    );
-    
-    await _boardBox.put(board.id, board);
-    await _columnBox.put(todoColumn.id, todoColumn);
-    await _columnBox.put(inProgressColumn.id, inProgressColumn);
-    await _columnBox.put(doneColumn.id, doneColumn);
-    
-    board.columnIds = [todoColumn.id, inProgressColumn.id, doneColumn.id];
-    await board.save();
-    
-    _boards.add(board);
-    _columns.addAll([todoColumn, inProgressColumn, doneColumn]);
+    await _projectBox.put(project.id, project);
+    _projects.add(project);
+    _selectedProjectId = project.id;
     
     notifyListeners();
   }
@@ -92,16 +83,111 @@ class TaskService extends ChangeNotifier {
       ritual.resetIfNeeded();
     }
   }
-
-  Future<void> addTask(String title, {String? description, TaskPriority? priority, String? boardId}) async {
+  
+  // Project selection
+  void selectProject(String? projectId) {
+    _selectedProjectId = projectId;
+    notifyListeners();
+  }
+  
+  // Project CRUD operations
+  Future<Project> addProject(
+    String name,
+    String key, {
+    String? description,
+    String color = '#4A90E2',
+    String? iconName,
+  }) async {
     const uuid = Uuid();
+    final project = Project(
+      id: uuid.v4(),
+      name: name,
+      key: key.toUpperCase(),
+      description: description,
+      createdAt: DateTime.now(),
+      color: color,
+      iconName: iconName,
+    );
+    
+    await _projectBox.put(project.id, project);
+    _projects.add(project);
+    notifyListeners();
+    return project;
+  }
+  
+  Future<void> updateProject(Project project) async {
+    await project.save();
+    notifyListeners();
+  }
+  
+  Future<void> deleteProject(String projectId) async {
+    // Delete all tasks in this project
+    final projectTasks = _tasks.where((t) => t.projectId == projectId).toList();
+    for (final task in projectTasks) {
+      await _taskBox.delete(task.id);
+    }
+    _tasks.removeWhere((t) => t.projectId == projectId);
+    
+    // Delete the project
+    await _projectBox.delete(projectId);
+    _projects.removeWhere((p) => p.id == projectId);
+    
+    // If deleted project was selected, select another
+    if (_selectedProjectId == projectId) {
+      _selectedProjectId = _projects.isNotEmpty ? _projects.first.id : null;
+    }
+    
+    notifyListeners();
+  }
+  
+  Future<void> archiveProject(String projectId) async {
+    final project = _projects.firstWhere((p) => p.id == projectId);
+    project.isArchived = true;
+    await project.save();
+    
+    // If archived project was selected, select another active one
+    if (_selectedProjectId == projectId) {
+      final activeProjects = _projects.where((p) => !p.isArchived).toList();
+      _selectedProjectId = activeProjects.isNotEmpty 
+          ? activeProjects.first.id 
+          : null;
+    }
+    
+    notifyListeners();
+  }
+
+  // Task operations
+  Future<void> addTask(
+    String title, {
+    String? description,
+    TaskPriority? priority,
+    String? projectId,
+  }) async {
+    const uuid = Uuid();
+    
+    // Use selected project if no projectId provided
+    final targetProjectId = projectId ?? _selectedProjectId;
+    String? taskKey;
+    
+    // Generate task key if project exists
+    if (targetProjectId != null) {
+      try {
+        final project = _projects.firstWhere((p) => p.id == targetProjectId);
+        taskKey = project.nextTaskKey;
+        await project.save();
+      } catch (_) {
+        // Project not found, proceed without key
+      }
+    }
+    
     final task = Task(
       id: uuid.v4(),
       title: title,
       description: description,
       priority: priority ?? TaskPriority.medium,
       createdAt: DateTime.now(),
-      boardId: boardId,
+      projectId: targetProjectId,
+      taskKey: taskKey,
     );
     
     await _taskBox.put(task.id, task);
@@ -119,7 +205,29 @@ class TaskService extends ChangeNotifier {
     _tasks.removeWhere((task) => task.id == taskId);
     notifyListeners();
   }
+  
+  Future<void> moveTaskToProject(String taskId, String? newProjectId) async {
+    final task = _tasks.firstWhere((t) => t.id == taskId);
+    task.projectId = newProjectId;
+    
+    // Generate new task key for new project
+    if (newProjectId != null) {
+      try {
+        final project = _projects.firstWhere((p) => p.id == newProjectId);
+        task.taskKey = project.nextTaskKey;
+        await project.save();
+      } catch (_) {
+        task.taskKey = null;
+      }
+    } else {
+      task.taskKey = null;
+    }
+    
+    await task.save();
+    notifyListeners();
+  }
 
+  // Ritual operations (unchanged - rituals are independent)
   Future<void> addRitual(String title, {String? description}) async {
     const uuid = Uuid();
     final ritual = Ritual(
@@ -156,10 +264,24 @@ class TaskService extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<Task> getTasksForColumn(String columnId) {
-    return _tasks.where((task) {
-      // This would need to be implemented based on your logic
-      // For now, we'll use status as a proxy
+  // Task filtering methods
+  List<Task> getTasksForProject(String? projectId) {
+    if (projectId == null) {
+      return _tasks.where((task) => task.projectId == null).toList();
+    }
+    return _tasks.where((task) => task.projectId == projectId).toList();
+  }
+  
+  List<Task> getTasksForSelectedProject() {
+    return getTasksForProject(_selectedProjectId);
+  }
+  
+  List<Task> getTasksForColumn(String columnId, {String? projectId}) {
+    final projectTasks = projectId != null 
+        ? getTasksForProject(projectId)
+        : getTasksForSelectedProject();
+    
+    return projectTasks.where((task) {
       switch (columnId) {
         case 'todo':
           return task.status == TaskStatus.todo;
@@ -171,5 +293,15 @@ class TaskService extends ChangeNotifier {
           return false;
       }
     }).toList();
+  }
+  
+  // Get active (non-archived) projects
+  List<Project> get activeProjects {
+    return _projects.where((p) => !p.isArchived).toList();
+  }
+  
+  // Get archived projects
+  List<Project> get archivedProjects {
+    return _projects.where((p) => p.isArchived).toList();
   }
 }
