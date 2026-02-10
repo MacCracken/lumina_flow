@@ -4,7 +4,7 @@ This file contains instructions for agentic coding agents working in this reposi
 
 ## Project Overview
 
-Lumina Flow is a cross-platform productivity application combining Kanban-style task management with daily ritual tracking. Built with Flutter for native performance across macOS, iOS, Linux desktop, and Linux mobile.
+Photis Nadi is a cross-platform productivity application combining Kanban-style task management with daily ritual tracking. Built with Flutter for native performance across macOS, iOS, Linux desktop, and Linux mobile.
 
 ## Build, Lint, and Test Commands
 
@@ -89,28 +89,30 @@ flutter packages pub run build_runner watch  # Watch for changes
 ## File Structure
 
 ```
-lumina_flow/
+photisnadi/
 ├── lib/
-│   ├── models/          # Data models (Task, Ritual, Board)
-│   │   ├── task.dart
-│   │   ├── ritual.dart
-│   │   └── board.dart
+│   ├── models/          # Data models (Task, Ritual, Board, Project)
+│   │   ├── task.dart         # Task with projectId, taskKey, modifiedAt
+│   │   ├── ritual.dart       # Ritual with daily/weekly/monthly reset
+│   │   ├── board.dart        # Board and BoardColumn
+│   │   └── project.dart      # Project with key-based task numbering
 │   ├── services/        # Business logic and state management
-│   │   ├── task_service.dart
-│   │   ├── theme_service.dart
-│   │   ├── sync_service.dart
+│   │   ├── task_service.dart       # CRUD for tasks, rituals, projects
+│   │   ├── theme_service.dart      # Theme preferences
+│   │   ├── sync_service.dart       # Supabase sync with conflict resolution
 │   │   └── desktop_integration.dart
 │   ├── screens/         # UI screens
-│   │   └── home_screen.dart
+│   │   └── home_screen.dart  # ProjectSidebar | KanbanBoard | RitualsSidebar
 │   ├── widgets/         # Reusable UI components
-│   │   ├── kanban_board.dart
-│   │   ├── rituals_sidebar.dart
+│   │   ├── kanban_board.dart      # Drag-and-drop task columns
+│   │   ├── project_sidebar.dart   # Project list and selection
+│   │   ├── rituals_sidebar.dart   # Ritual checklist with streaks
 │   │   └── theme_toggle.dart
 │   ├── themes/          # App theming and styling
 │   │   └── app_theme.dart
 │   ├── utils/           # Utility functions
-│   └── main.dart        # App entry point
-├── test/                # Test files
+│   └── main.dart        # App entry point, Hive adapter registration
+├── test/                # Test files (26 unit tests)
 ├── assets/              # Images, fonts, etc.
 │   ├── images/
 │   └── fonts/
@@ -177,9 +179,12 @@ lumina_flow/
 
 - All models must extend `HiveObject` and include `part` directives
 - Use `@HiveType` and `@HiveField` annotations with unique typeIds
+- Current typeId assignments: Task=0, TaskStatus=1, TaskPriority=2, Ritual=3, RitualFrequency=4, Board=5, BoardColumn=6, Project=7
 - Generate adapters with build_runner after model changes
+- All adapters must be registered in `main.dart` (including enum adapters)
 - Handle box opening/closing properly
 - Use transactions for multiple related operations
+- Task and Project models include `modifiedAt` for sync conflict resolution
 
 ## Additional Rules
 
