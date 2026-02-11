@@ -1,6 +1,6 @@
 # Photis Nadi
 
-[![Flutter CI](https://github.com/yourusername/photisnadi/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/yourusername/photisnadi/actions/workflows/ci.yml)
+[![Flutter CI](https://github.com/MacCracken/photisnadi/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MacCracken/photisnadi/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/Tests-26%20passed-green)](https://github.com/yourusername/photisnadi/actions)
 [![Flutter](https://img.shields.io/badge/Flutter-3.10+-blue)](https://flutter.dev)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
