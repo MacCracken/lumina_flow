@@ -6,6 +6,7 @@ import '../models/task.dart';
 import '../models/ritual.dart';
 import '../models/project.dart';
 import '../models/board.dart';
+import '../common/constants.dart';
 
 /// Manages tasks, rituals, and projects with local storage using Hive.
 class TaskService extends ChangeNotifier {
@@ -496,6 +497,34 @@ class TaskService extends ChangeNotifier {
         : getTasksForSelectedProject();
 
     return projectTasks.where((task) => task.status == column.status).toList();
+  }
+
+  List<Task> getTasksForColumnPaginated(
+    String columnId, {
+    String? projectId,
+    int page = 0,
+    int pageSize = AppConstants.defaultPageSize,
+  }) {
+    final allTasks = getTasksForColumn(columnId, projectId: projectId);
+    final startIndex = page * pageSize;
+    if (startIndex >= allTasks.length) return [];
+    final endIndex = (startIndex + pageSize).clamp(0, allTasks.length);
+    return allTasks.sublist(startIndex, endIndex);
+  }
+
+  int getTaskCountForColumn(String columnId, {String? projectId}) {
+    return getTasksForColumn(columnId, projectId: projectId).length;
+  }
+
+  bool hasMoreTasksForColumn(
+    String columnId, {
+    String? projectId,
+    int page = 0,
+    int pageSize = AppConstants.defaultPageSize,
+  }) {
+    final totalTasks = getTaskCountForColumn(columnId, projectId: projectId);
+    final loadedCount = (page + 1) * pageSize;
+    return loadedCount < totalTasks;
   }
 
   // Get active (non-archived) projects

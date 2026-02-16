@@ -503,6 +503,171 @@ void main() {
     });
   });
 
+  group('Pagination Tests', () {
+    late TaskService taskService;
+
+    setUp(() async {
+      await setUpTestHive();
+      _registerAdapters();
+      taskService = TaskService();
+      await taskService.init();
+    });
+
+    tearDown(() async {
+      await tearDownTestHive();
+    });
+
+    test('getTasksForColumnPaginated returns correct page', () async {
+      final project = await taskService.addProject('Test', 'TST');
+      expect(project, isNotNull);
+      taskService.selectProject(project!.id);
+
+      for (int i = 0; i < 25; i++) {
+        await taskService.addTask('Task $i');
+      }
+
+      final todoColumn = project.columns.firstWhere(
+        (c) => c.status == TaskStatus.todo,
+      );
+      final page0 = taskService.getTasksForColumnPaginated(
+        todoColumn.id,
+        projectId: project.id,
+        page: 0,
+        pageSize: 10,
+      );
+      expect(page0.length, 10);
+
+      final page1 = taskService.getTasksForColumnPaginated(
+        todoColumn.id,
+        projectId: project.id,
+        page: 1,
+        pageSize: 10,
+      );
+      expect(page1.length, 10);
+
+      final page2 = taskService.getTasksForColumnPaginated(
+        todoColumn.id,
+        projectId: project.id,
+        page: 2,
+        pageSize: 10,
+      );
+      expect(page2.length, 5);
+    });
+
+    test('getTaskCountForColumn returns correct count', () async {
+      final project = await taskService.addProject('Test', 'TST');
+      expect(project, isNotNull);
+      taskService.selectProject(project!.id);
+
+      await taskService.addTask('Task 1');
+      await taskService.addTask('Task 2');
+      await taskService.addTask('Task 3');
+
+      final todoColumn = project.columns.firstWhere(
+        (c) => c.status == TaskStatus.todo,
+      );
+      final count = taskService.getTaskCountForColumn(
+        todoColumn.id,
+        projectId: project.id,
+      );
+      expect(count, 3);
+    });
+
+    test('hasMoreTasksForColumn correctly identifies more pages', () async {
+      final project = await taskService.addProject('Test', 'TST');
+      expect(project, isNotNull);
+      taskService.selectProject(project!.id);
+
+      for (int i = 0; i < 15; i++) {
+        await taskService.addTask('Task $i');
+      }
+
+      final todoColumn = project.columns.firstWhere(
+        (c) => c.status == TaskStatus.todo,
+      );
+      expect(
+        taskService.hasMoreTasksForColumn(
+          todoColumn.id,
+          projectId: project.id,
+          page: 0,
+          pageSize: 10,
+        ),
+        isTrue,
+      );
+      expect(
+        taskService.hasMoreTasksForColumn(
+          todoColumn.id,
+          projectId: project.id,
+          page: 1,
+          pageSize: 10,
+        ),
+        isFalse,
+      );
+    });
+
+    test('hasMoreTasksForColumn returns false when on last page', () async {
+      final project = await taskService.addProject('Test', 'TST');
+      expect(project, isNotNull);
+      taskService.selectProject(project!.id);
+
+      await taskService.addTask('Task 1');
+      await taskService.addTask('Task 2');
+
+      final todoColumn = project.columns.firstWhere(
+        (c) => c.status == TaskStatus.todo,
+      );
+      expect(
+        taskService.hasMoreTasksForColumn(
+          todoColumn.id,
+          projectId: project.id,
+          page: 0,
+          pageSize: 10,
+        ),
+        isFalse,
+      );
+    });
+
+    test('getTasksForColumnPaginated returns empty when page exceeds data',
+        () async {
+      final project = await taskService.addProject('Test', 'TST');
+      expect(project, isNotNull);
+      taskService.selectProject(project!.id);
+
+      await taskService.addTask('Task 1');
+
+      final todoColumn = project.columns.firstWhere(
+        (c) => c.status == TaskStatus.todo,
+      );
+      final page1 = taskService.getTasksForColumnPaginated(
+        todoColumn.id,
+        projectId: project.id,
+        page: 1,
+        pageSize: 10,
+      );
+      expect(page1.length, 0);
+    });
+
+    test('getTasksForColumnPaginated returns empty when page exceeds data',
+        () async {
+      final project = await taskService.addProject('Test', 'TST');
+      expect(project, isNotNull);
+      taskService.selectProject(project!.id);
+
+      await taskService.addTask('Task 1');
+
+      final todoColumn = project.columns.firstWhere(
+        (c) => c.status == TaskStatus.todo,
+      );
+      final page1 = taskService.getTasksForColumnPaginated(
+        todoColumn.id,
+        projectId: project.id,
+        page: 1,
+        pageSize: 10,
+      );
+      expect(page1.length, 0);
+    });
+  });
+
   group('Validation Tests', () {
     test('isValidHexColor validates correct hex colors', () {
       expect(isValidHexColor('#FF0000'), isTrue);

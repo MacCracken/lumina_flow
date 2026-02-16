@@ -14,12 +14,12 @@ This document tracks known issues and planned improvements. Items that have been
 
 1. ✅ Add more comprehensive tests (edge cases, error scenarios)
 2. ✅ Add validation to models
-3. Missing optimization for large lists with pagination
+3. ✅ Optimization for large lists with pagination
 4. ✅ Error boundaries and fallback UI for error states
 
 ### Low Priority
 
-1. Magic numbers throughout (padding values, line limits)
+1. ✅ Magic numbers throughout (padding values, line limits)
 2. Extract reusable UI components where duplicated
 
 ### Completed (Reference)
