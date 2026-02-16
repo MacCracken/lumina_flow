@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import '../common/utils.dart';
 
 part 'ritual.g.dart';
 
@@ -6,7 +7,7 @@ part 'ritual.g.dart';
 @HiveType(typeId: 3)
 class Ritual extends HiveObject {
   @HiveField(0)
-  String id;
+  final String id;
 
   @HiveField(1)
   String title;
@@ -18,7 +19,7 @@ class Ritual extends HiveObject {
   bool isCompleted;
 
   @HiveField(4)
-  DateTime createdAt;
+  final DateTime createdAt;
 
   @HiveField(5)
   DateTime? lastCompleted;
@@ -42,7 +43,14 @@ class Ritual extends HiveObject {
     this.resetTime,
     this.streakCount = 0,
     this.frequency = RitualFrequency.daily,
-  });
+  }) {
+    if (!isValidUuid(id)) {
+      throw ArgumentError('Invalid ritual ID: must be a valid UUID');
+    }
+    if (title.trim().isEmpty) {
+      throw ArgumentError('Ritual title cannot be empty');
+    }
+  }
 
   void markCompleted() {
     isCompleted = true;

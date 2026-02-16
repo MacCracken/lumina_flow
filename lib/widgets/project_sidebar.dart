@@ -24,40 +24,43 @@ class _ProjectSidebarState extends State<ProjectSidebar> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TaskService>(
-      builder: (context, taskService, child) {
-        final activeProjects = taskService.activeProjects;
-        final archivedProjects = taskService.archivedProjects;
-        final selectedProjectId = taskService.selectedProjectId;
-
-        return Container(
-          width: widget.isCollapsed ? 60 : 240,
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            border: Border(
-              right: BorderSide(
-                color: Theme.of(context).dividerColor,
-                width: 1,
-              ),
-            ),
+    return Container(
+      width: widget.isCollapsed ? 60 : 240,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border(
+          right: BorderSide(
+            color: Theme.of(context).dividerColor,
+            width: 1,
           ),
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: widget.isCollapsed
-                    ? _buildCollapsedView(activeProjects, selectedProjectId)
-                    : _buildExpandedView(
-                        activeProjects,
-                        archivedProjects,
-                        selectedProjectId,
-                        taskService,
-                      ),
-              ),
-            ],
+        ),
+      ),
+      child: Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: widget.isCollapsed
+                ? Selector<TaskService, List<Project>>(
+                    selector: (_, service) => service.activeProjects,
+                    builder: (context, projects, _) =>
+                        _buildCollapsedView(projects),
+                  )
+                : Selector<TaskService,
+                    (List<Project>, List<Project>, String?)>(
+                    selector: (_, service) => (
+                      service.activeProjects,
+                      service.archivedProjects,
+                      service.selectedProjectId
+                    ),
+                    builder: (context, data, _) => _buildExpandedView(
+                      data.$1,
+                      data.$2,
+                      data.$3,
+                    ),
+                  ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -103,10 +106,8 @@ class _ProjectSidebarState extends State<ProjectSidebar> {
     );
   }
 
-  Widget _buildCollapsedView(
-    List<Project> projects,
-    String? selectedProjectId,
-  ) {
+  Widget _buildCollapsedView(List<Project> projects) {
+    final selectedProjectId = context.read<TaskService>().selectedProjectId;
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: projects.length,
@@ -157,8 +158,8 @@ class _ProjectSidebarState extends State<ProjectSidebar> {
     List<Project> activeProjects,
     List<Project> archivedProjects,
     String? selectedProjectId,
-    TaskService taskService,
   ) {
+    final taskService = context.read<TaskService>();
     return ListView(
       padding: const EdgeInsets.all(8),
       children: [

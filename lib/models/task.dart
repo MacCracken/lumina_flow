@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import '../common/utils.dart';
 
 part 'task.g.dart';
 
@@ -6,7 +7,7 @@ part 'task.g.dart';
 @HiveType(typeId: 0)
 class Task extends HiveObject {
   @HiveField(0)
-  String id;
+  final String id;
 
   @HiveField(1)
   String title;
@@ -21,7 +22,7 @@ class Task extends HiveObject {
   TaskPriority priority;
 
   @HiveField(5)
-  DateTime createdAt;
+  final DateTime createdAt;
 
   @HiveField(6)
   DateTime? dueDate;
@@ -50,7 +51,17 @@ class Task extends HiveObject {
     this.tags = const [],
     this.taskKey,
     DateTime? modifiedAt,
-  }) : modifiedAt = modifiedAt ?? createdAt;
+  }) : modifiedAt = modifiedAt ?? createdAt {
+    if (!isValidUuid(id)) {
+      throw ArgumentError('Invalid task ID: must be a valid UUID');
+    }
+    if (title.trim().isEmpty) {
+      throw ArgumentError('Task title cannot be empty');
+    }
+    if (projectId != null && !isValidUuid(projectId!)) {
+      throw ArgumentError('Invalid project ID: must be a valid UUID');
+    }
+  }
 
   Task copyWith({
     String? id,

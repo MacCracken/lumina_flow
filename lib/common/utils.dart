@@ -1,10 +1,43 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
 
+/// Validates a hex color string
+bool isValidHexColor(String colorHex) {
+  if (colorHex.isEmpty) return false;
+  final hexPattern = RegExp(r'^#?([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$');
+  return hexPattern.hasMatch(colorHex);
+}
+
+/// Normalizes a hex color string to #RRGGBB format
+String normalizeHexColor(String colorHex) {
+  String normalized = colorHex.trim().toUpperCase();
+  if (!normalized.startsWith('#')) {
+    normalized = '#$normalized';
+  }
+  return normalized;
+}
+
+/// Validates a project key (2-5 uppercase alphanumeric characters)
+bool isValidProjectKey(String key) {
+  if (key.isEmpty) return false;
+  final keyPattern = RegExp(r'^[A-Z0-9]{2,5}$');
+  return keyPattern.hasMatch(key);
+}
+
+/// Validates a UUID string
+bool isValidUuid(String uuid) {
+  final uuidPattern = RegExp(
+    r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+    caseSensitive: false,
+  );
+  return uuidPattern.hasMatch(uuid);
+}
+
 /// Parses a hex color string to a Color object
 Color parseColor(String colorHex) {
   try {
-    return Color(int.parse(colorHex.replaceFirst('#', '0xFF')));
+    final normalized = normalizeHexColor(colorHex);
+    return Color(int.parse(normalized.replaceFirst('#', '0x')));
   } on FormatException {
     return Colors.blue;
   }

@@ -19,9 +19,15 @@ class TaskService extends ChangeNotifier {
 
   String? _selectedProjectId;
 
+  bool _isLoading = true;
+  String? _error;
+
   List<Task> get tasks => List.unmodifiable(_tasks);
   List<Ritual> get rituals => List.unmodifiable(_rituals);
   List<Project> get projects => List.unmodifiable(_projects);
+
+  bool get isLoading => _isLoading;
+  String? get error => _error;
 
   String? get selectedProjectId => _selectedProjectId;
 
@@ -35,6 +41,10 @@ class TaskService extends ChangeNotifier {
   }
 
   Future<void> init() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
     try {
       _taskBox = await Hive.openBox<Task>('tasks');
       _ritualBox = await Hive.openBox<Ritual>('rituals');
@@ -42,18 +52,17 @@ class TaskService extends ChangeNotifier {
 
       _loadData();
 
-      // Initialize default project if none exists
       if (_projects.isEmpty) {
         await _createDefaultProject();
       }
 
-      // Select first project by default
       if (_selectedProjectId == null && _projects.isNotEmpty) {
         _selectedProjectId = _projects.first.id;
       }
 
-      // Check for ritual resets
       await _checkRitualResets();
+      _isLoading = false;
+      notifyListeners();
     } catch (e, stackTrace) {
       developer.log(
         'Failed to initialize task service',
@@ -61,6 +70,9 @@ class TaskService extends ChangeNotifier {
         error: e,
         stackTrace: stackTrace,
       );
+      _error = 'Failed to initialize: $e';
+      _isLoading = false;
+      notifyListeners();
       rethrow;
     }
   }
@@ -126,6 +138,11 @@ class TaskService extends ChangeNotifier {
         stackTrace: stackTrace,
       );
     }
+  }
+
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 
   // Project selection
@@ -266,7 +283,7 @@ class TaskService extends ChangeNotifier {
       if (targetProjectId != null) {
         try {
           final project = _projects.firstWhere((p) => p.id == targetProjectId);
-          taskKey = project.nextTaskKey;
+          taskKey = project.generateNextTaskKey();
           await project.save();
         } catch (_) {
           // Project not found, proceed without key
@@ -345,7 +362,7 @@ class TaskService extends ChangeNotifier {
       if (newProjectId != null) {
         try {
           final project = _projects.firstWhere((p) => p.id == newProjectId);
-          task.taskKey = project.nextTaskKey;
+          task.taskKey = project.generateNextTaskKey();
           await project.save();
         } catch (_) {
           task.taskKey = null;

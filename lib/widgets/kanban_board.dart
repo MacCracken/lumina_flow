@@ -27,33 +27,45 @@ class _KanbanBoardState extends State<KanbanBoard> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TaskService>(
-      builder: (context, taskService, child) {
-        final selectedProject = taskService.selectedProject;
-        final columns = selectedProject?.columns ?? [];
-
-        return Column(
-          children: [
-            _buildHeader(selectedProject),
-            Expanded(
-              child: selectedProject == null
-                  ? _buildNoProjectSelected()
-                  : ReorderableListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      buildDefaultDragHandles: false,
-                      itemCount: columns.length,
-                      onReorder: (oldIndex, newIndex) {
-                        if (newIndex > oldIndex) newIndex--;
-                        final columnIds = columns.map((c) => c.id).toList();
-                        final id = columnIds.removeAt(oldIndex);
-                        columnIds.insert(newIndex, id);
-                        taskService.reorderColumns(
-                            selectedProject.id, columnIds);
-                      },
-                      itemBuilder: (context, index) {
-                        final column = columns[index];
-                        final tasks = taskService.getTasksForColumn(column.id);
-
+    return Column(
+      children: [
+        Selector<TaskService, Project?>(
+          selector: (_, service) => service.selectedProject,
+          builder: (context, selectedProject, _) =>
+              _buildHeader(selectedProject),
+        ),
+        Expanded(
+          child: Selector<TaskService, String?>(
+            selector: (_, service) => service.selectedProjectId,
+            builder: (context, selectedProjectId, _) {
+              if (selectedProjectId == null) {
+                return _buildNoProjectSelected();
+              }
+              return Selector<TaskService, List<BoardColumn>>(
+                selector: (_, service) =>
+                    service.selectedProject?.columns ?? [],
+                builder: (context, columns, _) => ReorderableListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  buildDefaultDragHandles: false,
+                  itemCount: columns.length,
+                  onReorder: (oldIndex, newIndex) {
+                    if (newIndex > oldIndex) newIndex--;
+                    final columnIds = columns.map((c) => c.id).toList();
+                    final id = columnIds.removeAt(oldIndex);
+                    columnIds.insert(newIndex, id);
+                    context
+                        .read<TaskService>()
+                        .reorderColumns(selectedProjectId, columnIds);
+                  },
+                  itemBuilder: (context, index) {
+                    final column = columns[index];
+                    return Selector<TaskService, List<Task>>(
+                      selector: (_, service) =>
+                          service.getTasksForColumn(column.id),
+                      builder: (context, tasks, _) {
+                        final project =
+                            context.read<TaskService>().selectedProject;
+                        if (project == null) return const SizedBox.shrink();
                         return Container(
                           key: ValueKey(column.id),
                           width: 300,
@@ -61,15 +73,18 @@ class _KanbanBoardState extends State<KanbanBoard> {
                           child: _buildColumn(
                             column,
                             tasks,
-                            selectedProject,
+                            project,
                           ),
                         );
                       },
-                    ),
-            ),
-          ],
-        );
-      },
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

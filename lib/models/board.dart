@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import '../common/utils.dart';
 import 'task.dart';
 
 part 'board.g.dart';
@@ -7,7 +8,7 @@ part 'board.g.dart';
 @HiveType(typeId: 5)
 class Board extends HiveObject {
   @HiveField(0)
-  String id;
+  final String id;
 
   @HiveField(1)
   String title;
@@ -16,7 +17,7 @@ class Board extends HiveObject {
   String? description;
 
   @HiveField(3)
-  DateTime createdAt;
+  final DateTime createdAt;
 
   @HiveField(4)
   List<String> columnIds;
@@ -31,7 +32,15 @@ class Board extends HiveObject {
     required this.createdAt,
     this.columnIds = const [],
     this.color = '#4A90E2',
-  });
+  }) {
+    if (!isValidUuid(id)) {
+      throw ArgumentError('Invalid board ID: must be a valid UUID');
+    }
+    if (title.trim().isEmpty) {
+      throw ArgumentError('Board title cannot be empty');
+    }
+    color = isValidHexColor(color) ? normalizeHexColor(color) : '#4A90E2';
+  }
 
   Board copyWith({
     String? id,
@@ -56,7 +65,7 @@ class Board extends HiveObject {
 @HiveType(typeId: 6)
 class BoardColumn extends HiveObject {
   @HiveField(0)
-  String id;
+  final String id;
 
   @HiveField(1)
   String title;
@@ -80,7 +89,12 @@ class BoardColumn extends HiveObject {
     this.order = 0,
     this.color = '#6B7280',
     required this.status,
-  });
+  }) {
+    if (title.trim().isEmpty) {
+      throw ArgumentError('Column title cannot be empty');
+    }
+    color = isValidHexColor(color) ? normalizeHexColor(color) : '#6B7280';
+  }
 
   BoardColumn copyWith({
     String? id,

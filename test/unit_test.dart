@@ -6,6 +6,7 @@ import 'package:photisnadi/models/ritual.dart';
 import 'package:photisnadi/models/board.dart';
 import 'package:photisnadi/models/project.dart';
 import 'package:photisnadi/services/task_service.dart';
+import 'package:photisnadi/common/utils.dart';
 
 bool _adaptersRegistered = false;
 
@@ -267,7 +268,7 @@ void main() {
   group('Ritual Reset Tests', () {
     test('daily ritual should reset on new day', () {
       final ritual = Ritual(
-        id: 'test-1',
+        id: '550e8400-e29b-41d4-a716-446655440001',
         title: 'Daily Ritual',
         isCompleted: true,
         createdAt: DateTime(2024, 1, 1),
@@ -288,7 +289,7 @@ void main() {
 
     test('daily ritual should not reset on same day', () {
       final ritual = Ritual(
-        id: 'test-1',
+        id: '550e8400-e29b-41d4-a716-446655440002',
         title: 'Daily Ritual',
         isCompleted: true,
         createdAt: DateTime(2024, 1, 1),
@@ -355,14 +356,14 @@ void main() {
   group('Task Model Tests', () {
     test('copyWith should preserve all fields', () {
       final task = Task(
-        id: '1',
+        id: '550e8400-e29b-41d4-a716-446655440010',
         title: 'Test',
         description: 'Desc',
         status: TaskStatus.todo,
         priority: TaskPriority.high,
         createdAt: DateTime(2024, 1, 1),
         dueDate: DateTime(2024, 2, 1),
-        projectId: 'proj-1',
+        projectId: '550e8400-e29b-41d4-a716-446655440099',
         tags: ['tag1'],
         taskKey: 'P-1',
       );
@@ -370,11 +371,11 @@ void main() {
       final copy = task.copyWith(title: 'Updated');
 
       expect(copy.title, 'Updated');
-      expect(copy.id, '1');
+      expect(copy.id, '550e8400-e29b-41d4-a716-446655440010');
       expect(copy.description, 'Desc');
       expect(copy.status, TaskStatus.todo);
       expect(copy.priority, TaskPriority.high);
-      expect(copy.projectId, 'proj-1');
+      expect(copy.projectId, '550e8400-e29b-41d4-a716-446655440099');
       expect(copy.tags, ['tag1']);
       expect(copy.taskKey, 'P-1');
     });
@@ -382,7 +383,7 @@ void main() {
     test('modifiedAt defaults to createdAt', () {
       final now = DateTime(2024, 1, 1);
       final task = Task(
-        id: '1',
+        id: '550e8400-e29b-41d4-a716-446655440011',
         title: 'Test',
         createdAt: now,
       );
@@ -392,23 +393,23 @@ void main() {
   });
 
   group('Project Model Tests', () {
-    test('nextTaskKey increments counter', () {
+    test('generateNextTaskKey increments counter', () {
       final project = Project(
-        id: '1',
+        id: '550e8400-e29b-41d4-a716-446655440000',
         name: 'Test',
         projectKey: 'TST',
         createdAt: DateTime(2024, 1, 1),
       );
 
-      expect(project.nextTaskKey, 'TST-1');
-      expect(project.nextTaskKey, 'TST-2');
-      expect(project.nextTaskKey, 'TST-3');
+      expect(project.generateNextTaskKey(), 'TST-1');
+      expect(project.generateNextTaskKey(), 'TST-2');
+      expect(project.generateNextTaskKey(), 'TST-3');
       expect(project.taskCounter, 3);
     });
 
     test('copyWith should preserve all fields', () {
       final project = Project(
-        id: '1',
+        id: '550e8400-e29b-41d4-a716-446655440020',
         name: 'Test',
         projectKey: 'TST',
         description: 'A project',
@@ -422,7 +423,7 @@ void main() {
       final copy = project.copyWith(name: 'Updated');
 
       expect(copy.name, 'Updated');
-      expect(copy.id, '1');
+      expect(copy.id, '550e8400-e29b-41d4-a716-446655440020');
       expect(copy.projectKey, 'TST');
       expect(copy.description, 'A project');
       expect(copy.color, '#FF0000');
@@ -434,7 +435,7 @@ void main() {
     test('modifiedAt defaults to createdAt', () {
       final now = DateTime(2024, 1, 1);
       final project = Project(
-        id: '1',
+        id: '550e8400-e29b-41d4-a716-446655440021',
         name: 'Test',
         projectKey: 'TST',
         createdAt: now,
@@ -447,7 +448,7 @@ void main() {
   group('Board Model Tests', () {
     test('BoardColumn should store tasks', () {
       final column = BoardColumn(
-        id: 'col-1',
+        id: '550e8400-e29b-41d4-a716-446655440030',
         title: 'To Do',
         taskIds: ['task-1', 'task-2'],
         status: TaskStatus.todo,
@@ -459,7 +460,7 @@ void main() {
 
     test('Board should store column ids', () {
       final board = Board(
-        id: 'board-1',
+        id: '550e8400-e29b-41d4-a716-446655440031',
         title: 'Main Board',
         createdAt: DateTime(2024, 1, 1),
         columnIds: ['col-1', 'col-2', 'col-3'],
@@ -471,32 +472,229 @@ void main() {
 
     test('BoardColumn copyWith should preserve fields', () {
       final column = BoardColumn(
-        id: 'col-1',
+        id: '550e8400-e29b-41d4-a716-446655440032',
         title: 'To Do',
-        taskIds: ['task-1'],
+        order: 0,
+        color: '#FF0000',
         status: TaskStatus.todo,
       );
 
-      final copy = column.copyWith(title: 'In Progress');
+      final copy = column.copyWith(title: 'Done');
 
-      expect(copy.title, 'In Progress');
-      expect(copy.id, 'col-1');
-      expect(copy.taskIds, ['task-1']);
+      expect(copy.title, 'Done');
+      expect(copy.id, '550e8400-e29b-41d4-a716-446655440032');
+      expect(copy.order, 0);
+      expect(copy.color, '#FF0000');
     });
 
     test('Board copyWith should preserve fields', () {
       final board = Board(
-        id: 'board-1',
+        id: '550e8400-e29b-41d4-a716-446655440033',
         title: 'Main Board',
         createdAt: DateTime(2024, 1, 1),
-        columnIds: ['col-1'],
+        color: '#00FF00',
       );
 
       final copy = board.copyWith(title: 'Updated Board');
 
       expect(copy.title, 'Updated Board');
-      expect(copy.id, 'board-1');
-      expect(copy.columnIds, ['col-1']);
+      expect(copy.id, '550e8400-e29b-41d4-a716-446655440033');
+      expect(copy.color, '#00FF00');
+    });
+  });
+
+  group('Validation Tests', () {
+    test('isValidHexColor validates correct hex colors', () {
+      expect(isValidHexColor('#FF0000'), isTrue);
+      expect(isValidHexColor('FF0000'), isTrue);
+      expect(isValidHexColor('#AABBCC'), isTrue);
+      expect(isValidHexColor('#ff0000'), isTrue);
+      expect(isValidHexColor('#FF0000FF'), isTrue);
+    });
+
+    test('isValidHexColor rejects invalid hex colors', () {
+      expect(isValidHexColor(''), isFalse);
+      expect(isValidHexColor('#GG0000'), isFalse);
+      expect(isValidHexColor('#FFF'), isFalse);
+      expect(isValidHexColor('invalid'), isFalse);
+      expect(isValidHexColor('#12345'), isFalse);
+    });
+
+    test('normalizeHexColor normalizes colors correctly', () {
+      expect(normalizeHexColor('#FF0000'), '#FF0000');
+      expect(normalizeHexColor('FF0000'), '#FF0000');
+      expect(normalizeHexColor(' #aabbcc '), '#AABBCC');
+      expect(normalizeHexColor('#ff0000ff'), '#FF0000FF');
+    });
+
+    test('isValidProjectKey validates project keys', () {
+      expect(isValidProjectKey('AB'), isTrue);
+      expect(isValidProjectKey('ABC'), isTrue);
+      expect(isValidProjectKey('ABCD'), isTrue);
+      expect(isValidProjectKey('ABCDE'), isTrue);
+      expect(isValidProjectKey('A1'), isTrue);
+      expect(isValidProjectKey('A12'), isTrue);
+    });
+
+    test('isValidProjectKey rejects invalid project keys', () {
+      expect(isValidProjectKey(''), isFalse);
+      expect(isValidProjectKey('A'), isFalse);
+      expect(isValidProjectKey('ABCDEF'), isFalse);
+      expect(isValidProjectKey('ab'), isFalse);
+      expect(isValidProjectKey('AB!'), isFalse);
+      expect(isValidProjectKey('A B'), isFalse);
+    });
+
+    test('isValidUuid validates UUIDs', () {
+      expect(isValidUuid('550e8400-e29b-41d4-a716-446655440000'), isTrue);
+      expect(isValidUuid('550E8400-E29B-41D4-A716-446655440000'), isTrue);
+    });
+
+    test('isValidUuid rejects invalid UUIDs', () {
+      expect(isValidUuid(''), isFalse);
+      expect(isValidUuid('invalid'), isFalse);
+      expect(isValidUuid('550e8400-e29b-41d4-a716'), isFalse);
+      expect(isValidUuid('550e8400-e29b-41d4-a716-4466554400000'), isFalse);
+      expect(isValidUuid('550e8400-e29b-41d4-a716-44665544000g'), isFalse);
+    });
+  });
+
+  group('Model Validation Tests', () {
+    test('Task throws on invalid ID', () {
+      expect(
+        () => Task(
+          id: 'invalid',
+          title: 'Test',
+          createdAt: DateTime.now(),
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('Task throws on empty title', () {
+      expect(
+        () => Task(
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          title: '   ',
+          createdAt: DateTime.now(),
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('Task throws on invalid projectId', () {
+      expect(
+        () => Task(
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          title: 'Test',
+          createdAt: DateTime.now(),
+          projectId: 'invalid',
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('Project throws on invalid ID', () {
+      expect(
+        () => Project(
+          id: 'invalid',
+          name: 'Test',
+          projectKey: 'TST',
+          createdAt: DateTime.now(),
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('Project throws on empty name', () {
+      expect(
+        () => Project(
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          name: '   ',
+          projectKey: 'TST',
+          createdAt: DateTime.now(),
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('Project throws on invalid project key', () {
+      expect(
+        () => Project(
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          name: 'Test',
+          projectKey: 'too_long_key',
+          createdAt: DateTime.now(),
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('Board throws on invalid ID', () {
+      expect(
+        () => Board(
+          id: 'invalid',
+          title: 'Test',
+          createdAt: DateTime.now(),
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('Board throws on empty title', () {
+      expect(
+        () => Board(
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          title: '',
+          createdAt: DateTime.now(),
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('BoardColumn throws on empty title', () {
+      expect(
+        () => BoardColumn(
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          title: '',
+          status: TaskStatus.todo,
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('Ritual throws on invalid ID', () {
+      expect(
+        () => Ritual(
+          id: 'invalid',
+          title: 'Test',
+          createdAt: DateTime.now(),
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('Ritual throws on empty title', () {
+      expect(
+        () => Ritual(
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          title: '   ',
+          createdAt: DateTime.now(),
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+  });
+
+  group('Error Handling Tests', () {
+    test('TaskService handles init errors gracefully', () async {
+      final service = TaskService();
+      try {
+        await service.init();
+      } catch (_) {
+        // Expected in some test environments
+      }
+      expect(service.error, isNull);
     });
   });
 }

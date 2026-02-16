@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import '../common/utils.dart';
 import 'board.dart';
 import 'task.dart';
 
@@ -8,7 +9,7 @@ part 'project.g.dart';
 @HiveType(typeId: 7)
 class Project extends HiveObject {
   @HiveField(0)
-  String id;
+  final String id;
 
   @HiveField(1)
   String name;
@@ -20,7 +21,7 @@ class Project extends HiveObject {
   String? description;
 
   @HiveField(4)
-  DateTime createdAt;
+  final DateTime createdAt;
 
   @HiveField(5)
   String color;
@@ -76,9 +77,23 @@ class Project extends HiveObject {
     DateTime? modifiedAt,
     List<BoardColumn>? columns,
   })  : modifiedAt = modifiedAt ?? createdAt,
-        columns = columns ?? defaultColumns();
+        columns = columns ?? defaultColumns() {
+    if (!isValidUuid(id)) {
+      throw ArgumentError('Invalid project ID: must be a valid UUID');
+    }
+    if (name.trim().isEmpty) {
+      throw ArgumentError('Project name cannot be empty');
+    }
+    final normalizedKey = projectKey.toUpperCase().trim();
+    if (!isValidProjectKey(normalizedKey)) {
+      throw ArgumentError(
+          'Invalid project key: must be 2-5 uppercase alphanumeric characters');
+    }
+    projectKey = normalizedKey;
+    color = isValidHexColor(color) ? normalizeHexColor(color) : '#4A90E2';
+  }
 
-  String get nextTaskKey {
+  String generateNextTaskKey() {
     taskCounter++;
     return '$projectKey-$taskCounter';
   }

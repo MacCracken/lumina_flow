@@ -32,10 +32,59 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isWideScreen) {
-      return _buildWideLayout();
-    }
-    return _buildNarrowLayout();
+    return Selector<TaskService, bool>(
+      selector: (_, service) => service.isLoading,
+      builder: (context, isLoading, _) {
+        if (isLoading) {
+          return const Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading...'),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Selector<TaskService, String?>(
+          selector: (_, service) => service.error,
+          builder: (context, error, _) {
+            if (error != null) {
+              return Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline,
+                          size: 48, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text(error, textAlign: TextAlign.center),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<TaskService>().clearError();
+                          context.read<TaskService>().init();
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            if (_isWideScreen) {
+              return _buildWideLayout();
+            }
+            return _buildNarrowLayout();
+          },
+        );
+      },
+    );
   }
 
   Widget _buildWideLayout() {
@@ -162,12 +211,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showAddTaskDialog() {
-    final TextEditingController titleController = TextEditingController();
-    final TextEditingController descController = TextEditingController();
+    final titleController = TextEditingController();
+    final descController = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Add Task'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -187,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
@@ -199,23 +248,26 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? descController.text
                           : null,
                     );
-                Navigator.pop(context);
+                Navigator.pop(dialogContext);
               }
             },
             child: const Text('Add'),
           ),
         ],
       ),
-    );
+    ).then((_) {
+      titleController.dispose();
+      descController.dispose();
+    });
   }
 
   void _showAddRitualDialog() {
-    final TextEditingController titleController = TextEditingController();
-    final TextEditingController descController = TextEditingController();
+    final titleController = TextEditingController();
+    final descController = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Add Ritual'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -236,7 +288,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
@@ -248,13 +300,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? descController.text
                           : null,
                     );
-                Navigator.pop(context);
+                Navigator.pop(dialogContext);
               }
             },
             child: const Text('Add'),
           ),
         ],
       ),
-    );
+    ).then((_) {
+      titleController.dispose();
+      descController.dispose();
+    });
   }
 }
