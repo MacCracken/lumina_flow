@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/project.dart';
 import '../../services/task_service.dart';
 import '../../common/utils.dart';
+import '../common/common_widgets.dart';
 
 /// Shows a dialog to add a new project
 void showAddProjectDialog(BuildContext context) {
@@ -11,7 +12,7 @@ void showAddProjectDialog(BuildContext context) {
   final TextEditingController descController = TextEditingController();
   String selectedColor = '#4A90E2';
 
-  final colors = [
+  const projectColors = [
     '#4A90E2',
     '#50C878',
     '#FF6B6B',
@@ -82,38 +83,14 @@ void showAddProjectDialog(BuildContext context) {
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: colors.map((colorHex) {
-                  final color = parseColor(colorHex);
-                  final isSelected = selectedColor == colorHex;
-                  return GestureDetector(
-                    onTap: () {
-                      setDialogState(() {
-                        selectedColor = colorHex;
-                      });
-                    },
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(color: Colors.black, width: 2)
-                            : null,
-                      ),
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 18,
-                            )
-                          : null,
-                    ),
-                  );
-                }).toList(),
+              ColorPicker(
+                selectedColor: selectedColor,
+                colors: projectColors,
+                onColorSelected: (color) {
+                  setDialogState(() {
+                    selectedColor = color;
+                  });
+                },
               ),
             ],
           ),
@@ -248,7 +225,7 @@ void showEditProjectDialog(BuildContext context, Project project) {
       TextEditingController(text: project.description ?? '');
   String selectedColor = project.color;
 
-  final colors = [
+  const projectColors = [
     '#4A90E2',
     '#50C878',
     '#FF6B6B',
@@ -299,38 +276,14 @@ void showEditProjectDialog(BuildContext context, Project project) {
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: colors.map((colorHex) {
-                  final color = parseColor(colorHex);
-                  final isSelected = selectedColor == colorHex;
-                  return GestureDetector(
-                    onTap: () {
-                      setDialogState(() {
-                        selectedColor = colorHex;
-                      });
-                    },
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(color: Colors.black, width: 2)
-                            : null,
-                      ),
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 18,
-                            )
-                          : null,
-                    ),
-                  );
-                }).toList(),
+              ColorPicker(
+                selectedColor: selectedColor,
+                colors: projectColors,
+                onColorSelected: (color) {
+                  setDialogState(() {
+                    selectedColor = color;
+                  });
+                },
               ),
             ],
           ),

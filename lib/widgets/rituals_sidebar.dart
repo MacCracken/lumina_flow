@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/task_service.dart';
 import '../models/ritual.dart';
 import 'dialogs/ritual_dialogs.dart';
+import 'common/common_widgets.dart';
 
 class RitualsSidebar extends StatefulWidget {
   final bool isCollapsed;
@@ -188,31 +189,11 @@ class _RitualsSidebarState extends State<RitualsSidebar> {
 
   Widget _buildExpandedView(List<Ritual> rituals, TaskService taskService) {
     if (rituals.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.mood,
-              size: 48,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No rituals yet',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => showAddRitualDialog(context),
-              child: const Text('Add your first ritual'),
-            ),
-          ],
-        ),
+      return EmptyState(
+        icon: Icons.mood,
+        title: 'No rituals yet',
+        actionLabel: 'Add your first ritual',
+        onAction: () => showAddRitualDialog(context),
       );
     }
 
@@ -267,22 +248,7 @@ class _RitualsSidebarState extends State<RitualsSidebar> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (ritual.streakCount > 0)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${ritual.streakCount}🔥',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange.shade800,
-                  ),
-                ),
-              ),
+            StreakBadge(streakCount: ritual.streakCount),
             PopupMenuButton<String>(
               onSelected: (value) {
                 switch (value) {

@@ -4,6 +4,7 @@ import '../services/task_service.dart';
 import '../models/project.dart';
 import '../common/utils.dart';
 import 'dialogs/project_dialogs.dart';
+import 'common/common_widgets.dart';
 
 class ProjectSidebar extends StatefulWidget {
   final bool isCollapsed;
@@ -219,31 +220,11 @@ class _ProjectSidebarState extends State<ProjectSidebar> {
   }
 
   Widget _buildEmptyState() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.folder_open,
-            size: 48,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No projects yet',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () => showAddProjectDialog(context),
-            child: const Text('Create your first project'),
-          ),
-        ],
-      ),
+    return EmptyState(
+      icon: Icons.folder_open,
+      title: 'No projects yet',
+      actionLabel: 'Create your first project',
+      onAction: () => showAddProjectDialog(context),
     );
   }
 

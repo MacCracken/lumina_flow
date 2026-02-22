@@ -20,7 +20,7 @@ This document tracks known issues and planned improvements. Items that have been
 ### Low Priority
 
 1. ✅ Magic numbers throughout (padding values, line limits)
-2. Extract reusable UI components where duplicated
+2. ✅ Extract reusable UI components where duplicated
 
 ### Completed (Reference)
 

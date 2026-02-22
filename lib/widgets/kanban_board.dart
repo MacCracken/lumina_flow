@@ -9,6 +9,7 @@ import '../common/utils.dart';
 import '../common/constants.dart';
 import 'dialogs/task_dialogs.dart';
 import 'dialogs/project_dialogs.dart';
+import 'common/common_widgets.dart';
 
 class PaginatedTaskColumn extends StatefulWidget {
   final BoardColumn column;
@@ -173,11 +174,9 @@ class _PaginatedTaskColumnState extends State<PaginatedTaskColumn> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
-      child: Text(
-        'No tasks',
-        style: TextStyle(color: Colors.grey),
-      ),
+    return const EmptyState(
+      icon: Icons.inbox,
+      title: 'No tasks',
     );
   }
 
@@ -360,16 +359,6 @@ class _PaginatedTaskColumnState extends State<PaginatedTaskColumn> {
     TaskStatus selectedStatus = column.status;
     String selectedColor = column.color;
 
-    final colors = [
-      '#6B7280',
-      '#3B82F6',
-      '#10B981',
-      '#F59E0B',
-      '#EF4444',
-      '#8B5CF6',
-      '#EC4899',
-    ];
-
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -401,25 +390,10 @@ class _PaginatedTaskColumnState extends State<PaginatedTaskColumn> {
                 },
               ),
               const SizedBox(height: AppConstants.headerPadding),
-              Wrap(
-                spacing: AppConstants.smallPadding,
-                children: colors.map((color) {
-                  final isSelected = color == selectedColor;
-                  return GestureDetector(
-                    onTap: () => setState(() => selectedColor = color),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: parseColor(color),
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(color: Colors.black, width: 2)
-                            : null,
-                      ),
-                    ),
-                  );
-                }).toList(),
+              ColorPicker(
+                selectedColor: selectedColor,
+                onColorSelected: (color) =>
+                    setState(() => selectedColor = color),
               ),
             ],
           ),
@@ -554,33 +528,10 @@ class _KanbanBoardState extends State<KanbanBoard> {
   }
 
   Widget _buildNoProjectSelected() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.folder_open,
-            size: 64,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No project selected',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey.shade600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Select a project from the sidebar or create a new one',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
-          ),
-        ],
-      ),
+    return const EmptyState(
+      icon: Icons.folder_open,
+      title: 'No project selected',
+      subtitle: 'Select a project from the sidebar or create a new one',
     );
   }
 
@@ -660,16 +611,6 @@ class _KanbanBoardState extends State<KanbanBoard> {
     TaskStatus selectedStatus = TaskStatus.todo;
     String selectedColor = '#6B7280';
 
-    final colors = [
-      '#6B7280',
-      '#3B82F6',
-      '#10B981',
-      '#F59E0B',
-      '#EF4444',
-      '#8B5CF6',
-      '#EC4899',
-    ];
-
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -702,25 +643,10 @@ class _KanbanBoardState extends State<KanbanBoard> {
                 },
               ),
               const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                children: colors.map((color) {
-                  final isSelected = color == selectedColor;
-                  return GestureDetector(
-                    onTap: () => setState(() => selectedColor = color),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: parseColor(color),
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(color: Colors.black, width: 2)
-                            : null,
-                      ),
-                    ),
-                  );
-                }).toList(),
+              ColorPicker(
+                selectedColor: selectedColor,
+                onColorSelected: (color) =>
+                    setState(() => selectedColor = color),
               ),
             ],
           ),
