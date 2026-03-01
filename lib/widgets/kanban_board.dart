@@ -6,12 +6,12 @@ import '../models/project.dart';
 import '../models/board.dart';
 import '../common/utils.dart';
 import '../common/constants.dart';
-import 'dialogs/task_dialogs.dart';
-import 'dialogs/project_dialogs.dart';
-import 'common/common_widgets.dart';
-import 'common/task_card.dart';
-import 'common/column_widgets.dart';
-import 'common/search_filter_bar.dart';
+import '../widgets/dialogs/task_dialogs.dart';
+import '../widgets/dialogs/project_dialogs.dart';
+import '../widgets/common/common_widgets.dart';
+import '../widgets/common/task_card.dart';
+import '../widgets/common/column_widgets.dart';
+import '../widgets/common/search_filter_bar.dart';
 
 class PaginatedTaskColumn extends StatefulWidget {
   final BoardColumn column;
@@ -61,11 +61,28 @@ class _PaginatedTaskColumnState extends State<PaginatedTaskColumn> {
           Expanded(
             child: DragTarget<Task>(
               onAcceptWithDetails: (details) {
-                details.data.status = widget.column.status;
-                context.read<TaskService>().updateTask(details.data);
+                final task = details.data;
+                final taskService = context.read<TaskService>();
+
+                if (widget.column.status == TaskStatus.done &&
+                    taskService.isTaskBlocked(task)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'Cannot complete "${task.title}": dependencies not done'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                task.status = widget.column.status;
+                taskService.updateTask(task);
               },
               builder: (context, candidateData, rejectedData) {
-                if (tasks.isEmpty) {
+                final isDropTarget = candidateData.isNotEmpty;
+
+                if (tasks.isEmpty && !isDropTarget) {
                   return _buildEmptyState();
                 }
                 return ListView.builder(

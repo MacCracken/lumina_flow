@@ -39,6 +39,9 @@ class Task extends HiveObject {
   @HiveField(10)
   DateTime modifiedAt;
 
+  @HiveField(11)
+  List<String> dependsOn;
+
   Task({
     required this.id,
     required this.title,
@@ -51,6 +54,7 @@ class Task extends HiveObject {
     this.tags = const [],
     this.taskKey,
     DateTime? modifiedAt,
+    this.dependsOn = const [],
   }) : modifiedAt = modifiedAt ?? createdAt {
     if (!isValidUuid(id)) {
       throw ArgumentError('Invalid task ID: must be a valid UUID');
@@ -75,6 +79,7 @@ class Task extends HiveObject {
     List<String>? tags,
     String? taskKey,
     DateTime? modifiedAt,
+    List<String>? dependsOn,
   }) {
     return Task(
       id: id ?? this.id,
@@ -88,6 +93,7 @@ class Task extends HiveObject {
       tags: tags ?? this.tags,
       taskKey: taskKey ?? this.taskKey,
       modifiedAt: modifiedAt ?? this.modifiedAt,
+      dependsOn: dependsOn ?? this.dependsOn,
     );
   }
 }

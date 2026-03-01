@@ -341,6 +341,7 @@ class TaskService extends ChangeNotifier {
     try {
       await _taskBox.delete(taskId);
       _tasks.removeWhere((task) => task.id == taskId);
+      _removeDependencyReferences(taskId);
       notifyListeners();
       return true;
     } catch (e, stackTrace) {
@@ -352,6 +353,94 @@ class TaskService extends ChangeNotifier {
       );
       return false;
     }
+  }
+
+  void _removeDependencyReferences(String taskId) {
+    for (final task in _tasks) {
+      if (task.dependsOn.contains(taskId)) {
+        task.dependsOn = task.dependsOn.where((id) => id != taskId).toList();
+      }
+    }
+  }
+
+  bool addTaskDependency(String taskId, String dependsOnTaskId) {
+    try {
+      final task = _tasks.firstWhere((t) => t.id == taskId);
+      if (taskId == dependsOnTaskId) return false;
+      if (task.dependsOn.contains(dependsOnTaskId)) return false;
+      if (_wouldCreateCircularDependency(taskId, dependsOnTaskId)) return false;
+
+      task.dependsOn = [...task.dependsOn, dependsOnTaskId];
+      task.modifiedAt = DateTime.now();
+      task.save();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  bool removeTaskDependency(String taskId, String dependsOnTaskId) {
+    try {
+      final task = _tasks.firstWhere((t) => t.id == taskId);
+      task.dependsOn =
+          task.dependsOn.where((id) => id != dependsOnTaskId).toList();
+      task.modifiedAt = DateTime.now();
+      task.save();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  bool _wouldCreateCircularDependency(String taskId, String newDepId) {
+    final visited = <String>{};
+    final toVisit = [newDepId];
+
+    while (toVisit.isNotEmpty) {
+      final current = toVisit.removeLast();
+      if (current == taskId) return true;
+      if (visited.contains(current)) continue;
+      visited.add(current);
+
+      try {
+        final task = _tasks.firstWhere((t) => t.id == current);
+        toVisit.addAll(task.dependsOn);
+      } catch (_) {}
+    }
+    return false;
+  }
+
+  List<Task> getTaskDependencies(String taskId) {
+    try {
+      final task = _tasks.firstWhere((t) => t.id == taskId);
+      return _tasks.where((t) => task.dependsOn.contains(t.id)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  List<Task> getDependentTasks(String taskId) {
+    return _tasks.where((t) => t.dependsOn.contains(taskId)).toList();
+  }
+
+  bool isTaskBlocked(Task task) {
+    if (task.status == TaskStatus.done) return false;
+    for (final depId in task.dependsOn) {
+      try {
+        final depTask = _tasks.firstWhere((t) => t.id == depId);
+        if (depTask.status != TaskStatus.done) return true;
+      } catch (_) {}
+    }
+    return false;
+  }
+
+  bool canMoveTask(Task task, TaskStatus newStatus) {
+    if (newStatus == TaskStatus.done && isTaskBlocked(task)) {
+      return false;
+    }
+    return true;
   }
 
   Future<bool> moveTaskToProject(String taskId, String? newProjectId) async {

@@ -28,13 +28,14 @@ class TaskAdapter extends TypeAdapter<Task> {
       tags: (fields[8] as List).cast<String>(),
       taskKey: fields[9] as String?,
       modifiedAt: fields[10] as DateTime?,
+      dependsOn: (fields[11] as List).cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Task obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -56,7 +57,9 @@ class TaskAdapter extends TypeAdapter<Task> {
       ..writeByte(9)
       ..write(obj.taskKey)
       ..writeByte(10)
-      ..write(obj.modifiedAt);
+      ..write(obj.modifiedAt)
+      ..writeByte(11)
+      ..write(obj.dependsOn);
   }
 
   @override

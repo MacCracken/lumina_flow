@@ -862,4 +862,140 @@ void main() {
       expect(service.error, isNull);
     });
   });
+
+  group('Task Dependencies Tests', () {
+    late TaskService taskService;
+
+    setUp(() async {
+      await setUpTestHive();
+      _registerAdapters();
+      taskService = TaskService();
+      await taskService.init();
+    });
+
+    tearDown(() async {
+      await tearDownTestHive();
+    });
+
+    test('should add task dependency', () async {
+      final task1 = await taskService.addTask('Task 1');
+      final task2 = await taskService.addTask('Task 2');
+
+      final result = taskService.addTaskDependency(task2!.id, task1!.id);
+
+      expect(result, isTrue);
+      expect(task2.dependsOn.contains(task1.id), isTrue);
+    });
+
+    test('should not add self dependency', () async {
+      final task = await taskService.addTask('Task 1');
+
+      final result = taskService.addTaskDependency(task!.id, task.id);
+
+      expect(result, isFalse);
+    });
+
+    test('should not add duplicate dependency', () async {
+      final task1 = await taskService.addTask('Task 1');
+      final task2 = await taskService.addTask('Task 2');
+
+      taskService.addTaskDependency(task2!.id, task1!.id);
+      final result = taskService.addTaskDependency(task2.id, task1.id);
+
+      expect(result, isFalse);
+    });
+
+    test('should not create circular dependency', () async {
+      final task1 = await taskService.addTask('Task 1');
+      final task2 = await taskService.addTask('Task 2');
+
+      taskService.addTaskDependency(task2!.id, task1!.id);
+      final result = taskService.addTaskDependency(task1.id, task2.id);
+
+      expect(result, isFalse);
+    });
+
+    test('should remove task dependency', () async {
+      final task1 = await taskService.addTask('Task 1');
+      final task2 = await taskService.addTask('Task 2');
+
+      taskService.addTaskDependency(task2!.id, task1!.id);
+      final result = taskService.removeTaskDependency(task2.id, task1.id);
+
+      expect(result, isTrue);
+      expect(task2.dependsOn.contains(task1.id), isFalse);
+    });
+
+    test('should get task dependencies', () async {
+      final task1 = await taskService.addTask('Task 1');
+      final task2 = await taskService.addTask('Task 2');
+
+      taskService.addTaskDependency(task2!.id, task1!.id);
+      final deps = taskService.getTaskDependencies(task2.id);
+
+      expect(deps.length, 1);
+      expect(deps.first.id, task1.id);
+    });
+
+    test('should get dependent tasks', () async {
+      final task1 = await taskService.addTask('Task 1');
+      final task2 = await taskService.addTask('Task 2');
+
+      taskService.addTaskDependency(task2!.id, task1!.id);
+      final dependents = taskService.getDependentTasks(task1.id);
+
+      expect(dependents.length, 1);
+      expect(dependents.first.id, task2.id);
+    });
+
+    test('should detect blocked task', () async {
+      final task1 = await taskService.addTask('Task 1');
+      final task2 = await taskService.addTask('Task 2');
+
+      taskService.addTaskDependency(task2!.id, task1!.id);
+
+      expect(taskService.isTaskBlocked(task2), isTrue);
+    });
+
+    test('should not block completed dependency', () async {
+      final task1 = await taskService.addTask('Task 1');
+      task1!.status = TaskStatus.done;
+      await taskService.updateTask(task1);
+
+      final task2 = await taskService.addTask('Task 2');
+      taskService.addTaskDependency(task2!.id, task1.id);
+
+      expect(taskService.isTaskBlocked(task2), isFalse);
+    });
+
+    test('should remove dependency references when task deleted', () async {
+      final task1 = await taskService.addTask('Task 1');
+      final task2 = await taskService.addTask('Task 2');
+
+      taskService.addTaskDependency(task2!.id, task1!.id);
+      await taskService.deleteTask(task1.id);
+
+      expect(task2.dependsOn.contains(task1.id), isFalse);
+    });
+
+    test('canMoveTask returns false for blocked task moving to done', () async {
+      final task1 = await taskService.addTask('Task 1');
+      final task2 = await taskService.addTask('Task 2');
+
+      taskService.addTaskDependency(task2!.id, task1!.id);
+
+      expect(taskService.canMoveTask(task2, TaskStatus.done), isFalse);
+    });
+
+    test('canMoveTask returns true for non-blocked task', () async {
+      final task1 = await taskService.addTask('Task 1');
+      task1!.status = TaskStatus.done;
+      await taskService.updateTask(task1);
+
+      final task2 = await taskService.addTask('Task 2');
+      taskService.addTaskDependency(task2!.id, task1.id);
+
+      expect(taskService.canMoveTask(task2, TaskStatus.done), isTrue);
+    });
+  });
 }

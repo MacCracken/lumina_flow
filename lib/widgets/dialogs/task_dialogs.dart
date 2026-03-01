@@ -179,6 +179,12 @@ void showEditTaskDialog(BuildContext context, Task task) {
       TextEditingController(text: task.description ?? '');
   TaskPriority selectedPriority = task.priority;
   TaskStatus selectedStatus = task.status;
+  final taskService = context.read<TaskService>();
+  final projectTasks = taskService
+      .getTasksForProject(task.projectId)
+      .where((t) => t.id != task.id)
+      .toList();
+  final currentDeps = taskService.getTaskDependencies(task.id);
 
   showDialog(
     context: context,
@@ -188,6 +194,7 @@ void showEditTaskDialog(BuildContext context, Task task) {
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
                 controller: titleController,
@@ -231,6 +238,88 @@ void showEditTaskDialog(BuildContext context, Task task) {
                   });
                 },
               ),
+              const SizedBox(height: 16),
+              const Text(
+                'Dependencies (Blocked by)',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              if (currentDeps.isNotEmpty) ...[
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: currentDeps.map((dep) {
+                    return Chip(
+                      label: Text(dep.taskKey ?? dep.title),
+                      deleteIcon: const Icon(Icons.close, size: 16),
+                      onDeleted: () {
+                        taskService.removeTaskDependency(task.id, dep.id);
+                        setDialogState(() {});
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 8),
+              ],
+              DropdownButtonFormField<String?>(
+                decoration: const InputDecoration(
+                  labelText: 'Add dependency',
+                  isDense: true,
+                ),
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('Select task...'),
+                  ),
+                  ...projectTasks
+                      .where((t) => !task.dependsOn.contains(t.id))
+                      .map((t) => DropdownMenuItem(
+                            value: t.id,
+                            child: Text(t.taskKey ?? t.title),
+                          )),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    final added = taskService.addTaskDependency(task.id, value);
+                    if (!added) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Cannot add: would create circular dependency'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                    setDialogState(() {});
+                  }
+                },
+              ),
+              if (taskService.isTaskBlocked(task)) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.red.shade700, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Task is blocked by incomplete dependencies',
+                          style: TextStyle(
+                            color: Colors.red.shade700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),

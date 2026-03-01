@@ -34,7 +34,7 @@ class _SearchFilterBarState extends State<SearchFilterBar> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search tasks...',
+                  hintText: 'Search tasks... (Ctrl+K)',
                   prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
@@ -59,7 +59,7 @@ class _SearchFilterBarState extends State<SearchFilterBar> {
                     borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
                 ),
-                onChanged: (value) => taskService.setSearchQuery(value),
+                onChanged: taskService.setSearchQuery,
               ),
             ),
             const SizedBox(width: 8),

@@ -7,6 +7,11 @@ Cross-platform productivity app combining Kanban-style task management with dail
 
 ## Completed ✓
 
+### v2026.3.1
+- Task Dependencies: Blocked-by relationships, visual indicators, drag warnings
+- Keyboard Shortcuts: Ctrl+N (quick add), Ctrl+K (search), Escape
+- Integration tests for task dependencies (67 tests total)
+
 ### v2026.2.22
 - Extracted reusable UI components
 
@@ -26,20 +31,20 @@ Cross-platform productivity app combining Kanban-style task management with dail
 
 ### High Priority
 
-1. **Search & Filter**
-   - Global task search across projects
-   - Filter by tags, priority, due date
-   - Sort options (date, priority, alphabetical)
+1. ~~Search & Filter~~
+   - ~~Global task search across projects~~
+   - ~~Filter by tags, priority, due date~~
+   - ~~Sort options (date, priority, alphabetical)~~
 
-2. **Task Dependencies**
-   - Blocked-by relationships
-   - Visual dependency indicators
-   - Dependency warnings on drag
+2. ~~Task Dependencies~~
+   - ~~Blocked-by relationships~~
+   - ~~Visual dependency indicators~~
+   - ~~Dependency warnings on drag~~
 
-3. **Keyboard Shortcuts**
-   - Desktop: vim-like navigation
-   - Quick task creation (Ctrl+N)
-   - Quick search (Ctrl+K)
+3. ~~Keyboard Shortcuts~~
+   - ~~Desktop: vim-like navigation~~
+   - ~~Quick task creation (Ctrl+N)~~
+   - ~~Quick search (Ctrl+K)~~
 
 ### Medium Priority
 

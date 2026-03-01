@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/task.dart';
+import '../../services/task_service.dart';
 import '../../common/utils.dart';
 import '../../common/constants.dart';
 
@@ -20,6 +22,9 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final priorityColor = getPriorityColor(task.priority);
+    final taskService = context.watch<TaskService>();
+    final isBlocked = taskService.isTaskBlocked(task);
+    final hasDependencies = task.dependsOn.isNotEmpty;
 
     return Card(
       margin: const EdgeInsets.symmetric(
@@ -28,6 +33,13 @@ class TaskCard extends StatelessWidget {
       ),
       elevation:
           isDragging ? AppConstants.elevationHigh : AppConstants.elevationLow,
+      shape: isBlocked
+          ? RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(AppConstants.cardBorderRadius),
+              side: BorderSide(color: Colors.red.shade300, width: 2),
+            )
+          : null,
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
@@ -37,7 +49,7 @@ class TaskCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(task, priorityColor),
+              _buildHeader(task, priorityColor, isBlocked, hasDependencies),
               const SizedBox(height: AppConstants.smallPadding),
               Text(
                 task.title,
@@ -73,7 +85,8 @@ class TaskCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(Task task, Color priorityColor) {
+  Widget _buildHeader(
+      Task task, Color priorityColor, bool isBlocked, bool hasDependencies) {
     return Row(
       children: [
         if (task.taskKey != null) ...[
@@ -97,6 +110,14 @@ class TaskCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppConstants.smallPadding),
+        ],
+        if (hasDependencies) ...[
+          Icon(
+            isBlocked ? Icons.block : Icons.link,
+            size: 14,
+            color: isBlocked ? Colors.red : Colors.grey,
+          ),
+          const SizedBox(width: 4),
         ],
         const Spacer(),
         Container(
