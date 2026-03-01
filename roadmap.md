@@ -7,7 +7,7 @@ Cross-platform productivity app combining Kanban-style task management with dail
 
 ## Completed ✓
 
-### v2026.3.1
+### v2026.2.28
 - Task Dependencies: Blocked-by relationships, visual indicators, drag warnings
 - Keyboard Shortcuts: Ctrl+N (quick add), Ctrl+K (search), Escape
 - Integration tests for task dependencies (67 tests total)
@@ -86,9 +86,9 @@ Cross-platform productivity app combining Kanban-style task management with dail
 ## Technical Improvements
 
 ### Tech Debt
-- [ ] Refactor KanbanBoard to use smaller components
-- [ ] Add integration tests
-- [ ] Add widget tests for UI components
+- [x] Refactor KanbanBoard to use smaller components
+- [x] Add integration tests (67 tests total)
+- [x] Add widget tests for UI components (17 widget tests)
 - [ ] Performance profiling for large datasets
 
 ### Architecture

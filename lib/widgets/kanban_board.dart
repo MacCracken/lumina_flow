@@ -7,11 +7,10 @@ import '../models/board.dart';
 import '../common/utils.dart';
 import '../common/constants.dart';
 import '../widgets/dialogs/task_dialogs.dart';
-import '../widgets/dialogs/project_dialogs.dart';
 import '../widgets/common/common_widgets.dart';
 import '../widgets/common/task_card.dart';
 import '../widgets/common/column_widgets.dart';
-import '../widgets/common/search_filter_bar.dart';
+import '../widgets/common/project_header.dart';
 
 class PaginatedTaskColumn extends StatefulWidget {
   final BoardColumn column;
@@ -270,82 +269,6 @@ class _KanbanBoardState extends State<KanbanBoard> {
   }
 
   Widget _buildHeader(Project? project) {
-    Color? projectColor;
-    if (project != null) {
-      projectColor = parseColor(project.color);
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (project != null) ...[
-                Container(
-                  width: 8,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: projectColor,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      project.name,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      project.projectKey,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ] else
-                const Text(
-                  'Projects',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              const Spacer(),
-              if (project != null) ...[
-                IconButton(
-                  onPressed: () => showAddColumnDialog(context, project),
-                  icon: const Icon(Icons.view_column),
-                  tooltip: 'Add Column',
-                ),
-                IconButton(
-                  onPressed: () => showAddTaskDialog(context),
-                  icon: const Icon(Icons.add),
-                  tooltip: 'Add Task',
-                ),
-                IconButton(
-                  onPressed: () => showProjectSettings(context, project),
-                  icon: const Icon(Icons.settings),
-                  tooltip: 'Project Settings',
-                ),
-              ],
-            ],
-          ),
-          if (project != null) ...[
-            const SizedBox(height: 12),
-            const SearchFilterBar(),
-          ],
-        ],
-      ),
-    );
+    return ProjectHeader(project: project);
   }
 }
